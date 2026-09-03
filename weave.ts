@@ -1,4 +1,4 @@
-// אריגת המכתב: קודם ניסיון AI (פונקציית השרת), ואם לא זמין — תבנית מקומית.
+// אריגת האיחול: קודם ניסיון AI (פונקציית השרת), ואם לא זמין — תבנית מקומית.
 // המשתתף לעולם לא רואה שגיאה.
 
 export interface WeaveItem {
@@ -12,6 +12,8 @@ export interface WeavePayload {
   items: WeaveItem[];
   goldenWord: string | null;
   personalSentence: string | null;
+  intention: string | null; // משפט הכוונה שנבחר בפתיחה
+  anchorWord: string | null; // המילה שנבחרה ב"רגע של אמת"
 }
 
 export interface WeaveResult {
@@ -19,33 +21,30 @@ export interface WeaveResult {
   source: "ai" | "template";
 }
 
-export function templateWeave({ name, items, goldenWord, personalSentence }: WeavePayload): string {
+export function templateWeave({ items, goldenWord, anchorWord }: WeavePayload): string {
   const words = items.map((i) => i.word);
   const wordsLine =
     words.length > 1
       ? words.slice(0, -1).join(", ") + " ו" + words[words.length - 1]
       : words[0] || "";
 
-  const body = items.map((i) => i.text).join(" ");
-
-  const parts = [
-    `לְ${name},`,
-    `שנה חדשה נפתחת, ומתוך אותיות השם שלי בחרתי את המילים שילוו אותי בה: ${wordsLine}.`,
-    body,
-    personalSentence ? `וברגעי האתגר — ${personalSentence}` : "",
+  const lines = [
+    `שתהיה לך שנה מלאה ב${wordsLine} —`,
     goldenWord
-      ? `ומכל המילים, המילה שאני לוקח/ת איתי דווקא היום היא "${goldenWord}".`
-      : "",
-    "שתהיה זו שנה שבה המילים הטובות שבחרתי הופכות, צעד אחר צעד, למציאות.",
+      ? `שנה שבה ${goldenWord} הולכת איתך לכל מקום ומאירה את הדרך,`
+      : "שנה שבה המילים הטובות הולכות איתך לכל מקום,",
+    anchorWord && anchorWord !== goldenWord
+      ? `וברגעים המאתגרים — ${anchorWord} תזכיר לך כמה כוח יש בך.`
+      : "והלב יודע: המילים שבחרנו בוראות את המציאות שלנו.",
   ];
 
-  return parts.filter(Boolean).join("\n\n");
+  return lines.join("\n");
 }
 
 export async function weaveLetter(payload: WeavePayload): Promise<WeaveResult> {
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 11000);
+    const timer = setTimeout(() => controller.abort(), 12000);
     const res = await fetch("/api/weave", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,7 +54,7 @@ export async function weaveLetter(payload: WeavePayload): Promise<WeaveResult> {
     clearTimeout(timer);
     if (res.ok) {
       const data = (await res.json()) as { text?: string };
-      if (data.text && data.text.trim().length > 40) {
+      if (data.text && data.text.trim().length > 20) {
         return { text: data.text.trim(), source: "ai" };
       }
     }

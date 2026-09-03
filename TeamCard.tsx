@@ -6,23 +6,25 @@ interface Props {
   showName: boolean;
   name: string;
   theme: CardTheme;
-  stampEmoji: string;
+  stampSrc: string;
+  bgImage: string | null;
 }
 
 export const TeamCard = forwardRef<HTMLDivElement, Props>(function TeamCard(
-  { teamWish, showName, name, theme, stampEmoji },
+  { teamWish, showName, name, theme, stampSrc, bgImage },
   ref
 ) {
   const style: React.CSSProperties = { ...(theme.vars as React.CSSProperties) };
 
   return (
-    <div ref={ref} className={`postcard team-card tex-${theme.texture}`} style={style} dir="rtl">
-      <div className="pc-stamp">{stampEmoji}</div>
+    <div ref={ref} className={`postcard team-card tex-${theme.texture} ${bgImage ? "has-ai-bg" : ""}`} style={style} dir="rtl">
+      {bgImage && <img src={bgImage} alt="" className="poster-ai-bg" />}
+      <img className="pc-stamp-img" src={stampSrc} alt="" />
       <div className="pc-postmark" aria-hidden>
         <span>שנה טובה</span>
       </div>
 
-      <p className="pc-title">💌 הברכה שלי לצוות שלנו</p>
+      <p className="pc-title">💌 הברכה שלי</p>
       <div className="pc-divider" />
 
       <p className="team-wish-text">"{teamWish}"</p>
