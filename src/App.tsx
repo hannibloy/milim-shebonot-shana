@@ -6,6 +6,8 @@ import { INTENTIONS } from "./data/intentions";
 import { STAMPS } from "./data/stamps";
 import { designFromName } from "./lib/seed";
 import { weaveLetter } from "./lib/weave";
+import { designBackground } from "./lib/design";
+import { BACKGROUNDS } from "./data/backgrounds";
 import { PersonalCard } from "./components/PersonalCard";
 import { TeamCard } from "./components/TeamCard";
 import { Facilitator } from "./components/Facilitator";
@@ -20,6 +22,11 @@ type Choice =
 // המסע: פתיחה ← המילים שלי ← עיצוב ← הגלויה שלי ← ברכה לצוות
 const STEPS = ["פתיחה", "המילים שלי", "עיצוב", "הגלויה שלי", "לצוות שלנו"] as const;
 
+const IS_MOBILE_SHARE =
+  typeof navigator !== "undefined" &&
+  "share" in navigator &&
+  /Android|iPhone|iPad/i.test(navigator.userAgent);
+
 export default function App() {
   const [guide, setGuide] = useState(() => window.location.hash === "#guide");
   useEffect(() => {
@@ -29,6 +36,11 @@ export default function App() {
   }, []);
 
   const [step, setStep] = useState(0);
+  const [maxStep, setMaxStep] = useState(0);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setMaxStep((m) => Math.max(m, step));
+  }, [step]);
 
   // תחנה 1: כוונה + שם
   const [intention, setIntention] = useState<string | null>(null);
@@ -54,6 +66,8 @@ export default function App() {
   // תחנה 4: הגלויה
   const [weaving, setWeaving] = useState(false);
   const [blessing, setBlessing] = useState<string>("");
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgChoice, setBgChoice] = useState<string>("honey");
 
   // תחנה 5: הצוות
   const [teamWish, setTeamWish] = useState("");
@@ -120,13 +134,26 @@ export default function App() {
   async function startWeaving() {
     setStep(3);
     setWeaving(true);
-    const result = await weaveLetter({
-      name,
-      items: resolved.map((r) => ({ letter: r.letter, word: r.word, text: r.text })),
-      goldenWord,
-      personalSentence: showSentenceOnCard && deepenText.trim() ? deepenText.trim() : null,
-    });
-    setBlessing(result.text);
+    // אריגת הברכה ועיצוב הרקע ב-AI — במקביל, כל אחד עם רשת ביטחון משלו
+    const [letterResult, bg] = await Promise.all([
+      weaveLetter({
+        name,
+        items: resolved.map((r) => ({ letter: r.letter, word: r.word, text: r.text })),
+        goldenWord,
+        personalSentence: showSentenceOnCard && deepenText.trim() ? deepenText.trim() : null,
+      }),
+      bgChoice === "ai"
+        ? designBackground({
+            themeId,
+            decorations: [...decorations],
+            density,
+            freeText: designText.trim(),
+            stampId,
+          })
+        : Promise.resolve(BACKGROUNDS.find((b) => b.id === bgChoice)?.img ?? null),
+    ]);
+    setBlessing(letterResult.text);
+    setBgImage(bg);
     setWeaving(false);
   }
 
@@ -207,17 +234,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="desk-decor" aria-hidden>
-        <span className="desk-float f1">✉️</span>
-        <span className="desk-float f2">✏️</span>
-        <span className="desk-float f3">📖</span>
-        <span className="desk-float f4">א</span>
-        <span className="desk-float f5">ש</span>
-        <span className="desk-float f6">💌</span>
-      </div>
-
       <header className="app-header">
         <img src="/logo.png" alt="חני בלוי" className="app-logo" />
+        <div>
+          <a className="guide-btn" href="#guide">🧭 מדריך למנחה — לסדנה קבוצתית</a>
+        </div>
       </header>
 
       <nav className="stepper" aria-label="שלבי המסע">
@@ -234,14 +255,15 @@ export default function App() {
       {/* ===== תחנה 1: פתיחה — כוונה ושם ===== */}
       {step === 0 && (
         <section className="card journey-card">
-          <img src="/envelope.jpg" alt="" className="hero-banner" />
-          <h1 className="hero-title">מילים שבוראות שנה</h1>
+          <h1 className="hero-title big">מילים שבוראות שנה</h1>
+          <p className="hero-tagline">מסע קצר של מילים טובות — מהשם שלך אל השנה החדשה</p>
+          <img src="/envelope.jpg" alt="" className="hero-blend" />
           <p className="step-sub">
             רגע לפני שהשנה מתחילה — עצירה קטנה, כולה שלך.
             נבחר יחד מילים טובות מתוך אותיות השם שלך, ונהפוך אותן לאגרת ברכה יפהפייה.
           </p>
 
-          <p className="panel-label center">🕯️ באיזו כוונה נכנסים? בחרו משפט אחד:</p>
+          <p className="panel-label center"><span className="apple-honey">🍎🍯</span> באיזו כוונה לשנה החדשה? בחרו משפט אחד:</p>
           <div className="intent-list">
             {INTENTIONS.map((s) => (
               <button
@@ -278,6 +300,9 @@ export default function App() {
             >
               נכנסים פנימה ⬅
             </button>
+            {maxStep > 0 && (
+              <button className="btn btn-ghost" onClick={() => setStep(1)}>קדימה ⬅</button>
+            )}
           </div>
         </section>
       )}
@@ -416,6 +441,9 @@ export default function App() {
 
           <div className="actions-row">
             <button className="btn btn-ghost" onClick={() => setStep(0)}>⬅ חזרה</button>
+            {maxStep > step && (
+              <button className="btn btn-ghost" onClick={() => setStep(step + 1)}>קדימה ⬅</button>
+            )}
             <button className="btn btn-primary" disabled={!allChosen} onClick={() => setStep(2)}>
               ממשיכים לעיצוב ⬅
             </button>
@@ -444,7 +472,32 @@ export default function App() {
             ))}
           </div>
 
-          <p className="panel-label">🎨 סגנון</p>
+          <p className="panel-label">🖼️ רקע הגלויה — האמנות שתעטוף את המילים שלך</p>
+          <div className="bg-gallery">
+            {BACKGROUNDS.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                className={`bg-chip ${bgChoice === b.id ? "selected" : ""}`}
+                onClick={() => { setBgChoice(b.id); setThemeId(b.themeId); }}
+                title={b.label}
+              >
+                <img src={b.img.replace("/backgrounds/", "/backgrounds/thumbs/")} alt={b.label} loading="lazy" />
+                <span>{b.label}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`bg-chip ai-chip ${bgChoice === "ai" ? "selected" : ""}`}
+              onClick={() => setBgChoice("ai")}
+              title="רקע ייחודי שנוצר במיוחד בשבילך"
+            >
+              <div className="ai-thumb">✨</div>
+              <span>הפתעה מה-AI</span>
+            </button>
+          </div>
+
+          <p className="panel-label">🎨 גוון הטקסט</p>
           <div className="theme-row">
             {THEMES.map((t) => (
               <button
@@ -542,6 +595,9 @@ export default function App() {
 
           <div className="actions-row">
             <button className="btn btn-ghost" onClick={() => setStep(1)}>⬅ חזרה</button>
+            {maxStep > 2 && blessing && (
+              <button className="btn btn-ghost" onClick={() => setStep(3)}>קדימה בלי שינוי ⬅</button>
+            )}
             <button className="btn btn-primary" onClick={startWeaving}>
               ✨ בוראים את הגלויה שלי
             </button>
@@ -555,7 +611,7 @@ export default function App() {
           {weaving ? (
             <div className="weaving-box">
               <img src="/pencil.jpg" alt="" className="weaving-banner" />
-              <p className="weaving-text">✏️ הגלויה שלך נבראת מאותיות השם...</p>
+              <p className="weaving-text">✏️ הגלויה שלך נבראת ומצוירת ממש עכשיו... (כ-10 שניות של קסם)</p>
             </div>
           ) : (
             <>
@@ -576,6 +632,7 @@ export default function App() {
                   density={density}
                   stampSrc={STAMPS.find((s) => s.id === stampId)?.img ?? "/stamps/star.jpg"}
                   signature={signature}
+                  bgImage={bgImage}
                 />
               </div>
 
@@ -625,6 +682,7 @@ export default function App() {
                   name={name}
                   theme={theme}
                   stampSrc={STAMPS.find((s) => s.id === stampId)?.img ?? "/stamps/star.jpg"}
+                  bgImage={bgChoice === "ai" ? bgImage : BACKGROUNDS.find((b) => b.id === bgChoice)?.img ?? null}
                 />
               </div>
 
@@ -632,17 +690,23 @@ export default function App() {
                 <button className="btn btn-gold" disabled={busy} onClick={() => { downloadCard("team"); setTeamReady(true); }}>
                   📥 שמירת גלוית הצוות
                 </button>
-                <button className="btn btn-primary" disabled={busy} onClick={() => { shareCard("team"); setTeamReady(true); }}>
-                  📌 שיתוף בקיר שלנו
-                </button>
+                <a
+                  className="btn btn-primary"
+                  href={PADLET_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setTeamReady(true)}
+                >
+                  📌 פתיחת הקיר שלנו
+                </a>
+
               </div>
 
               {teamReady && (
                 <div className="padlet-steps">
                   <p className="panel-label">כך מעלים לקיר ב-3 צעדים:</p>
                   <ol>
-                    <li>נכנסים לקיר (הכפתור למעלה פותח אותו)</li>
-                    <li>לוחצים על <b>+</b> בעמודת "הברכות לצוות"</li>
+                    <li>בקיר (כאן למטה, או בכפתור שפותח אותו במסך מלא) לוחצים על <b>+</b> בעמודת "הברכות לצוות"</li>
                     <li>מצרפים את התמונה ששמרתם — וזהו! 🎉</li>
                   </ol>
                 </div>

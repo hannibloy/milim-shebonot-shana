@@ -14,6 +14,7 @@ interface Props {
   density: "minimal" | "normal" | "rich";
   stampSrc: string;
   signature: string;
+  bgImage: string | null;
 }
 
 const DECO_EMOJI: Record<Decoration, string> = {
@@ -26,7 +27,7 @@ const DECO_EMOJI: Record<Decoration, string> = {
 };
 
 export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalCard(
-  { name, blessing, rows, goldenWord, personalSentence, theme, seeded, decorations, density, stampSrc, signature },
+  { name, blessing, rows, goldenWord, personalSentence, theme, seeded, decorations, density, stampSrc, signature, bgImage },
   ref
 ) {
   const style: React.CSSProperties = {
@@ -60,7 +61,8 @@ export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalC
   }
 
   return (
-    <div ref={ref} className={`poster tex-${theme.texture}`} style={style} dir="rtl">
+    <div ref={ref} className={`poster tex-${theme.texture} ${bgImage ? "has-ai-bg" : ""}`} style={style} dir="rtl">
+      {bgImage && <img src={bgImage} alt="" className="poster-ai-bg" />}
       {/* כתמי אקוורל שנבראו מאותיות השם */}
       {seeded.blobs.map((b, i) => (
         <span
