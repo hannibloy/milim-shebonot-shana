@@ -1561,3 +1561,39 @@ h1, h2, h3, .display {
   position: relative;
   z-index: 1;
 }
+
+/* בוחר בולים — רשת מרווחת, בלי חפיפות */
+.stamp-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 10px;
+  justify-items: center;
+  margin-bottom: 4px;
+}
+@media (min-width: 560px) { .stamp-row { grid-template-columns: repeat(6, 1fr); } }
+.stamp-row .stamp-chip { width: 100%; max-width: 96px; }
+.stamp-row .stamp-chip img { width: 100%; max-width: 84px; height: auto; aspect-ratio: 1; }
+
+/* קופסת הבסיס התיאורטי במדריך המנחה */
+.theory-box {
+  margin: 18px 0;
+  border: 1.5px solid var(--gold-soft);
+  border-radius: 16px;
+  background: rgba(253, 249, 243, 0.8);
+  overflow: hidden;
+}
+.theory-box summary {
+  cursor: pointer;
+  padding: 14px 18px;
+  font-family: "Varela Round";
+  color: var(--bordeaux);
+  font-size: 1.05rem;
+  list-style: none;
+}
+.theory-box summary::-webkit-details-marker { display: none; }
+.theory-box summary::after { content: " ⌄"; color: var(--gold); }
+.theory-box[open] summary { border-bottom: 1px dashed var(--gold-soft); }
+.theory-box[open] summary::after { content: " ⌃"; }
+.theory-inner { padding: 6px 18px 14px; }
+.theory-inner .fac-list li { margin-bottom: 10px; line-height: 1.7; }
+@media print { .theory-box { border: 1px solid #ccc; } .theory-box summary::after { content: ""; } }

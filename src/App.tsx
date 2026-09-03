@@ -521,7 +521,7 @@ export default function App() {
           </div>
 
           <p className="panel-label">💌 הבול שלך</p>
-          <div className="deco-row">
+          <div className="stamp-row">
             {STAMPS.map((s) => (
               <button
                 key={s.id}
