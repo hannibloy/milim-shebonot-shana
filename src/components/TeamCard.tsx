@@ -24,7 +24,7 @@ export const TeamCard = forwardRef<HTMLDivElement, Props>(function TeamCard(
         <span>שנה טובה</span>
       </div>
 
-      <p className="pc-title">💌 הברכה שלי לצוות שלנו</p>
+      <p className="pc-title">💌 הברכה שלי</p>
       <div className="pc-divider" />
 
       <p className="team-wish-text">"{teamWish}"</p>

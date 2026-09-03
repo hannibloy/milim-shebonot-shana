@@ -1597,3 +1597,173 @@ h1, h2, h3, .display {
 .theory-inner { padding: 6px 18px 14px; }
 .theory-inner .fac-list li { margin-bottom: 10px; line-height: 1.7; }
 @media print { .theory-box { border: 1px solid #ccc; } .theory-box summary::after { content: ""; } }
+
+/* ===== סבב תיקונים: ניווט, בולים, הידעת?, איחול, פוטר ===== */
+
+/* ניווט חופשי בין תחנות — עיגולי הצעדים לחיצים */
+.stepper button.dot {
+  border: none;
+  font-family: inherit;
+  cursor: default;
+  padding: 0;
+}
+.stepper button.dot.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.stepper button.dot.clickable:hover { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2); }
+.stepper button.dot:disabled { opacity: 0.55; }
+.stepper-hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 2px 0 8px;
+  opacity: 0.85;
+}
+
+/* בוחר הבולים — עימוד אחיד, בלי גלישות (תיקון 11) */
+.stamp-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 12px;
+  justify-items: stretch;
+  align-items: stretch;
+  margin-bottom: 8px;
+}
+@media (min-width: 560px) { .stamp-row { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.stamp-row .stamp-chip {
+  width: 100%;
+  max-width: none;
+  min-height: 118px;
+  justify-content: flex-start;
+  padding: 10px 6px 8px;
+  box-sizing: border-box;
+}
+.stamp-row .stamp-chip img {
+  width: 72px;
+  height: 72px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.stamp-row .stamp-chip span {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* מסגרת "הידעת?" — שיקוף ערוצי החוזק, מחוץ לגלויה */
+.didyouknow-box {
+  margin: 18px auto 6px;
+  max-width: 560px;
+  border: 2px dashed var(--gold, #d4af37);
+  border-radius: 20px;
+  background: linear-gradient(160deg, #fffdf6, #fdf6e3 60%, #fbf0d9);
+  padding: 16px 20px 14px;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.14);
+  text-align: center;
+}
+.dyk-title {
+  font-family: "Varela Round";
+  color: var(--bordeaux, #7a3b4a);
+  font-size: 1.06rem;
+  margin: 0 0 10px;
+}
+.dyk-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.dyk-label { font-weight: 700; color: var(--bordeaux, #7a3b4a); font-size: 0.92rem; }
+.dyk-chip {
+  background: #fff;
+  border: 1.5px solid var(--gold, #d4af37);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  color: var(--bordeaux, #7a3b4a);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.18);
+}
+.dyk-text { font-size: 0.95rem; line-height: 1.7; margin: 0 0 8px; color: var(--ink, #3d3229); }
+.dyk-footnote { font-size: 0.74rem; opacity: 0.75; margin: 0; }
+
+/* האיחול על הגלויה — מודגש ומרכזי יותר (תיקון 12) */
+.poster-blessing {
+  font-size: 1.04rem;
+  line-height: 1.75;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(1px);
+}
+.poster-word-hl {
+  font-weight: 700;
+  color: var(--card-title);
+}
+
+/* "כתיבה וחתימה טובה" — גדול, עגול ויפה (תיקון 13) */
+.footer-blessing {
+  display: block;
+  font-family: "Varela Round";
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 400;
+  color: var(--bordeaux, #7a3b4a);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9), 0 6px 18px rgba(212, 175, 55, 0.25);
+}
+.footer-sweet {
+  display: block;
+  font-family: "Varela Round";
+  font-size: 1rem;
+  color: var(--gold, #b8912e);
+  margin-top: 2px;
+}
+.poster-ktiva {
+  font-family: "Varela Round";
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+/* מקורות אקדמיים במדריך המנחה */
+.fac-source {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-soft, #6b5d52);
+  margin-top: 3px;
+  direction: ltr;
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+
+/* ===== מחולל קישור אישי למנחה ===== */
+.wall-builder {
+  margin: 20px 0;
+  border: 2px solid var(--sage-soft, #bfd8c2);
+  border-radius: 18px;
+  background: linear-gradient(165deg, #f7fbf5, #eef6ec);
+  padding: 16px 18px;
+}
+.wall-builder .field-label { margin-top: 10px; display: block; }
+.wall-builder input.name-field { font-size: 0.88rem; }
+.wall-link-result { margin-top: 12px; }
+.wall-link-box {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 0.8rem;
+  border: 1.5px solid var(--gold, #d4af37);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fffdf6;
+  resize: none;
+  margin-bottom: 8px;
+}
+.small-note { font-size: 0.84rem; opacity: 0.9; }
+@media print { .wall-builder { display: none; } }

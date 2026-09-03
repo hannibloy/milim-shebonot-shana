@@ -14,6 +14,49 @@ import { Facilitator } from "./components/Facilitator";
 
 const PADLET_URL = "https://padlet.com/bloyarava1/padlet-3pl2lhhpefgs5wd6";
 const PADLET_EMBED = "https://padlet.com/embed/3pl2lhhpefgs5wd6";
+// 👇 קישורי Breakout למדורים (פאדלט ← Share ← Breakout links). כשתדביקי אותם כאן,
+// כל כפתור יוביל ישירות למדור הנכון בלבד. כל עוד הם ריקים — נפתח הלוח המלא.
+const PADLET_TEAM_SECTION = ""; // קישור Breakout למדור "הברכות לצוות"
+const PADLET_PERSONAL_SECTION = ""; // קישור Breakout למדור "הגלויות שלנו"
+
+// ===== קיר לכל מנחה =====
+// מנחים שקיבלו את הפעילות יכולים להפנות ללוח פאדלט משלהם דרך פרמטרים בקישור:
+// ?wall=<קישור הלוח> &team=<Breakout לברכות הצוות> &personal=<Breakout לגלויות>
+// מחולל קישורים ידידותי נמצא בדף "מדריך למנחה".
+function readWallParams() {
+  if (typeof window === "undefined") return { wall: "", team: "", personal: "" };
+  const p = new URLSearchParams(window.location.search);
+  const safe = (v: string | null) => {
+    if (!v) return "";
+    try {
+      const u = new URL(v);
+      return u.protocol === "https:" ? u.toString() : "";
+    } catch {
+      return "";
+    }
+  };
+  return { wall: safe(p.get("wall")), team: safe(p.get("team")), personal: safe(p.get("personal")) };
+}
+const WALL = readWallParams();
+
+// גזירת קישור embed מקישור פאדלט רגיל (המזהה הוא הרכיב האחרון בכתובת)
+function padletEmbedFrom(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.endsWith("padlet.com")) return null;
+    const lastSeg = u.pathname.split("/").filter(Boolean).pop() ?? "";
+    const id = lastSeg.split("-").pop() ?? "";
+    if (id.length >= 8) return `https://padlet.com/embed/${id}`;
+  } catch {
+    /* לא פאדלט — פשוט לא נציג iframe */
+  }
+  return null;
+}
+
+const TEAM_WALL_URL = WALL.team || WALL.wall || PADLET_TEAM_SECTION || PADLET_URL;
+const PERSONAL_WALL_URL = WALL.personal || WALL.wall || PADLET_PERSONAL_SECTION || PADLET_URL;
+const ACTIVE_WALL_URL = WALL.wall || PADLET_URL;
+const ACTIVE_EMBED = WALL.wall ? padletEmbedFrom(WALL.wall) : PADLET_EMBED;
 
 type Choice =
   | { mode: "option"; index: 0 | 1 }
@@ -120,15 +163,36 @@ export default function App() {
 
   const words = resolved.map((r) => r.word);
 
-  // שיקוף ערוצי החוסן — מוצג על המסך, לא על הגלויה (הגלויה נשארת נקייה)
+  // "הידעת?" — שיקוף ערוצי החוסן (BASIC Ph, מולי להד).
+  // מוצג במסגרת מעוצבת מחוץ לגלויה, לאחר סיום כתיבתה. תמיד חיובי ומחזק.
+  const CHANNEL_PRAISE: Record<ResilienceChannel, string> = {
+    belief: "אנשים שנשענים על ערוץ זה שואבים כוח מערכים, מאמונה וממשמעות — עוגן יציב גם בימים סוערים.",
+    affect: "הלב הפתוח שלך הוא משאב: היכולת להרגיש, להתחבר ולתת מקום לרגש היא כוח של ממש.",
+    social: "הכוח שלך צומח מתוך קשרים — נתינה, שייכות וחברות. סביבך נבנית רשת שמחזיקה אותך ואת האחרים.",
+    imagination: "דמיון ויצירתיות פותחים לך דלתות במקומות שאחרים רואים בהם קיר — זו מתנה נדירה.",
+    cognition: "חשיבה בהירה, סקרנות ותבונה מלוות את הבחירות שלך — כוח שקט שמאיר את הדרך.",
+    physiology: "עשייה, התמדה וכוח פנימי — את/ה מסוג האנשים שהופכים כוונה למציאות.",
+  };
   const reflection = useMemo(() => {
     const counts = new Map<ResilienceChannel, number>();
     for (const r of resolved) if (r.channel) counts.set(r.channel, (counts.get(r.channel) ?? 0) + 1);
+    const customCount = resolved.filter((r) => !r.channel).length;
     if (counts.size === 0)
-      return "הצופן שלך נכתב כולו במילים שלך — וזה בדיוק הכוח: קול אישי לגמרי.";
-    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([ch]) => CHANNEL_LABELS[ch]);
-    const t = top.length === 2 ? `${top[0]} ו${top[1]}` : top[0];
-    return `המילים שבחרת מספרות שהחוסן שלך נשען בעיקר על ${t} — אלו העוגנים שילוו אותך השנה.`;
+      return {
+        channels: [] as string[],
+        text: "כל המילים בגלויה שלך הן מילים שכתבת בעצמך — וזה כוח בפני עצמו: קול אישי, מקורי ואמיץ. בחירה במילים משלך מעידה על חיבור עמוק לעולם הפנימי שלך.",
+      };
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const top = sorted.slice(0, 2);
+    const channels = top.map(([ch]) => CHANNEL_LABELS[ch]);
+    const praise = top.map(([ch]) => CHANNEL_PRAISE[ch]).join(" ");
+    const extra =
+      customCount > 0
+        ? " ולצד אלה, הוספת גם מילים משלך — סימן לקול אישי וייחודי."
+        : sorted.length > 2
+        ? " ובעצם, המילים שלך נוגעות במגוון רחב של ערוצים — עושר פנימי אמיתי."
+        : "";
+    return { channels, text: praise + extra };
   }, [resolved]);
 
   async function startWeaving() {
@@ -141,6 +205,8 @@ export default function App() {
         items: resolved.map((r) => ({ letter: r.letter, word: r.word, text: r.text })),
         goldenWord,
         personalSentence: showSentenceOnCard && deepenText.trim() ? deepenText.trim() : null,
+        intention,
+        anchorWord: deepenWord,
       }),
       bgChoice === "ai"
         ? designBackground({
@@ -197,7 +263,7 @@ export default function App() {
         }
       }
       await downloadCard(which);
-      window.open(PADLET_URL, "_blank");
+      window.open(which === "personal" ? PERSONAL_WALL_URL : TEAM_WALL_URL, "_blank");
     } catch {
       /* המשתמש ביטל — לא שגיאה */
     } finally {
@@ -242,15 +308,26 @@ export default function App() {
       </header>
 
       <nav className="stepper" aria-label="שלבי המסע">
-        {STEPS.map((label, i) => (
-          <span key={label} style={{ display: "contents" }}>
-            {i > 0 && <span className="line" />}
-            <span className={`dot ${i === step ? "active" : ""} ${i < step ? "done" : ""}`} title={label}>
-              {i < step ? "✓" : i + 1}
+        {STEPS.map((label, i) => {
+          const reachable = i <= maxStep;
+          return (
+            <span key={label} style={{ display: "contents" }}>
+              {i > 0 && <span className="line" />}
+              <button
+                type="button"
+                className={`dot ${i === step ? "active" : ""} ${i < step ? "done" : ""} ${reachable ? "clickable" : ""}`}
+                title={reachable ? `מעבר אל: ${label}` : label}
+                disabled={!reachable}
+                onClick={() => reachable && setStep(i)}
+                aria-label={`${label}${reachable ? " — לחיצה תעביר לתחנה זו" : ""}`}
+              >
+                {i < step ? "✓" : i + 1}
+              </button>
             </span>
-          </span>
-        ))}
+          );
+        })}
       </nav>
+      {maxStep > 0 && <p className="stepper-hint">אפשר ללחוץ על העיגולים כדי לחזור אחורה או להתקדם 🧭</p>}
 
       {/* ===== תחנה 1: פתיחה — כוונה ושם ===== */}
       {step === 0 && (
@@ -263,7 +340,7 @@ export default function App() {
             נבחר יחד מילים טובות מתוך אותיות השם שלך, ונהפוך אותן לאגרת ברכה יפהפייה.
           </p>
 
-          <p className="panel-label center"><span className="apple-honey">🍎🍯</span> באיזו כוונה לשנה החדשה? בחרו משפט אחד:</p>
+          <p className="panel-label center"><span className="apple-honey">🍎🍯</span> עם איזו כוונה שבלב נצא לדרך? בחרו את המשפט שהכי מדבר אליכם:</p>
           <div className="intent-list">
             {INTENTIONS.map((s) => (
               <button
@@ -313,7 +390,7 @@ export default function App() {
           <img src="/letters.jpg" alt="" className="step-banner" />
           <h2 className="step-title">המילים של {name} 💫</h2>
           <p className="step-sub">
-            כל אות בשם שלך פותחת שער לשתי מילות כוח. בחרו את זו שמדברת אליכם —
+            כל אות בשם שלך פותחת שער למילות כוח. בחרו את זו שמדברת אליכם —
             או כתבו מילה משלכם. <b>{chosenCount}/{letters.length}</b> אותיות נבחרו {chosenCount === letters.length && letters.length > 0 ? "✨" : ""}
           </p>
 
@@ -616,7 +693,6 @@ export default function App() {
           ) : (
             <>
               <h2 className="step-title">הנה היא — הגלויה של {name} 💛</h2>
-              <p className="step-sub reflection-line">🪞 {reflection}</p>
 
               <div className="postcard-wrap">
                 <PersonalCard
@@ -624,6 +700,7 @@ export default function App() {
                   name={name}
                   blessing={blessing}
                   rows={resolved.map((r) => ({ letter: r.letter, icon: r.icon, word: r.word }))}
+                  chosenWords={words}
                   goldenWord={goldenWord}
                   personalSentence={showSentenceOnCard && deepenText.trim() ? deepenText.trim() : null}
                   theme={theme}
@@ -635,6 +712,21 @@ export default function App() {
                   bgImage={bgImage}
                 />
               </div>
+
+              {/* הידעת? — שיקוף ערוצי החוסן, במסגרת מעוצבת מחוץ לגלויה */}
+              <aside className="didyouknow-box" aria-label="שיקוף ערוצי החוזק">
+                <p className="dyk-title">💡 הידעת? המילים שבחרת מספרות עליך משהו יפה</p>
+                {reflection.channels.length > 0 && (
+                  <div className="dyk-channels">
+                    <span className="dyk-label">ערוצי החוזק שלך:</span>
+                    {reflection.channels.map((c) => (
+                      <span key={c} className="dyk-chip">✨ {c}</span>
+                    ))}
+                  </div>
+                )}
+                <p className="dyk-text">{reflection.text}</p>
+                <p className="dyk-footnote">מבוסס על מודל ערוצי החוסן גשר מאח"ד (BASIC Ph) של פרופ' מולי להד — כל בחירה היא בחירה טובה 💛</p>
+              </aside>
 
               <div className="actions-row">
                 <button className="btn btn-ghost" onClick={() => setStep(2)}>⬅ לעיצוב</button>
@@ -664,7 +756,7 @@ export default function App() {
             className="team-textarea"
             value={teamWish}
             onChange={(e) => { setTeamWish(e.target.value); setTeamReady(false); }}
-            placeholder="השנה אני מאחל/ת לצוות שלנו..."
+            placeholder="השנה אני מאחל/ת ל..."
           />
 
           <label className="share-check">
@@ -692,12 +784,12 @@ export default function App() {
                 </button>
                 <a
                   className="btn btn-primary"
-                  href={PADLET_URL}
+                  href={TEAM_WALL_URL}
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => setTeamReady(true)}
                 >
-                  📌 פתיחת הקיר שלנו
+                  📌 פתיחת מדור "הברכות לצוות"
                 </a>
 
               </div>
@@ -716,9 +808,15 @@ export default function App() {
 
           <div className="padlet-section">
             <p className="panel-label">💛 הקיר המשותף שלנו</p>
-            <div className="padlet-frame-wrap">
-              <iframe src={PADLET_EMBED} title="קיר הברכות המשותף" allow="clipboard-write" />
-            </div>
+            {ACTIVE_EMBED ? (
+              <div className="padlet-frame-wrap">
+                <iframe src={ACTIVE_EMBED} title="קיר הברכות המשותף" allow="clipboard-write" />
+              </div>
+            ) : (
+              <a className="btn btn-primary" href={ACTIVE_WALL_URL} target="_blank" rel="noreferrer">
+                📌 פתיחת הקיר המשותף
+              </a>
+            )}
           </div>
 
           <div className="actions-row">
@@ -728,7 +826,8 @@ export default function App() {
       )}
 
       <footer className="app-footer">
-        ✒️ כתיבה וחתימה טובה · שנה טובה ומתוקה 🍯
+        <span className="footer-blessing">✒️ כְּתִיבָה וַחֲתִימָה טוֹבָה</span>
+        <span className="footer-sweet">שנה טובה ומתוקה 🍯</span>
         <div className="small">
           מילים שבוראות שנה · חני בלוי · <a href="#guide" className="guide-link">למנחה</a>
         </div>

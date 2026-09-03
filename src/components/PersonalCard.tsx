@@ -6,6 +6,7 @@ interface Props {
   name: string;
   blessing: string; // ברכה קצרה — 2-4 שורות
   rows: { letter: string; icon: string; word: string }[]; // האקרוסטיכון
+  chosenWords: string[]; // כל מילות הערך — מודגשות בגוף הברכה
   goldenWord: string | null;
   personalSentence: string | null; // מוצג רק אם המשתתף בחר במודע
   theme: CardTheme;
@@ -27,7 +28,7 @@ const DECO_EMOJI: Record<Decoration, string> = {
 };
 
 export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalCard(
-  { name, blessing, rows, goldenWord, personalSentence, theme, seeded, decorations, density, stampSrc, signature, bgImage },
+  { name, blessing, rows, chosenWords, goldenWord, personalSentence, theme, seeded, decorations, density, stampSrc, signature, bgImage },
   ref
 ) {
   const style: React.CSSProperties = {
@@ -50,14 +51,22 @@ export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalC
 
   const blessingLines = blessing.split(/\n+/).filter((l) => l.trim());
 
+  // מדגישה בגוף הברכה את כל מילות הערך שנבחרו; מילת הזהב זוכה לזוהר זהוב
   function highlight(line: string) {
-    if (!goldenWord || !line.includes(goldenWord)) return line;
-    const parts = line.split(goldenWord);
-    return parts.flatMap((part, i) =>
-      i < parts.length - 1
-        ? [part, <span key={i} className="poster-golden">{goldenWord}</span>]
-        : [part]
+    const targets = [...new Set(chosenWords.filter((w) => w && w.length > 1))]
+      .sort((a, b) => b.length - a.length);
+    if (targets.length === 0) return [line];
+    const pattern = new RegExp(
+      `(${targets.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
+      "g"
     );
+    return line.split(pattern).map((part, i) => {
+      if (part === goldenWord)
+        return <span key={i} className="poster-golden">{part}</span>;
+      if (targets.includes(part))
+        return <span key={i} className="poster-word-hl">{part}</span>;
+      return part;
+    });
   }
 
   return (
@@ -88,7 +97,6 @@ export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalC
       <div className="pc-postmark" aria-hidden><span>שנה טובה</span></div>
 
       <div className="poster-head">
-        <p className="poster-year">✨ אגרת ברכה לשנה החדשה ✨</p>
         <h2 className="poster-title">שָׁנָה טוֹבָה</h2>
         <p className="poster-to">לְ{name}</p>
         <div className="pc-divider" />
@@ -129,7 +137,7 @@ export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalC
       </div>
 
       <div className="poster-footer">
-        <span>✒️ כתיבה וחתימה טובה · שנה טובה ומתוקה 🍯</span>
+        <span className="poster-ktiva">✒️ כְּתִיבָה וַחֲתִימָה טוֹבָה 🍯</span>
         <div className="pc-credit">
           <img src="/logo.png" alt="חני בלוי" className="pc-logo" />
           <span>מילים שבוראות שנה · חני בלוי</span>
