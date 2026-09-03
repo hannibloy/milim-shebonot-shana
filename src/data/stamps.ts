@@ -1,10 +1,10 @@
-// סט הבולים לבחירה — כל גלויה צריכה בול
-export interface Stamp { id: string; emoji: string; label: string }
+// סט הבולים לבחירה — איורים מקוריים בסגנון חימר רך
+export interface Stamp { id: string; img: string; label: string }
 export const STAMPS: Stamp[] = [
-  { id: "star", emoji: "⭐", label: "כוכב" },
-  { id: "sprout", emoji: "🌱", label: "נבט" },
-  { id: "heart", emoji: "💗", label: "לב" },
-  { id: "dove", emoji: "🕊️", label: "יונה" },
-  { id: "rainbow", emoji: "🌈", label: "קשת" },
-  { id: "honey", emoji: "🍯", label: "דבש" },
+  { id: "star", img: "/stamps/star.jpg", label: "כוכב" },
+  { id: "sprout", img: "/stamps/sprout.jpg", label: "נבט" },
+  { id: "heart", img: "/stamps/heart.jpg", label: "לב" },
+  { id: "dove", img: "/stamps/dove.jpg", label: "יונה" },
+  { id: "rainbow", img: "/stamps/rainbow.jpg", label: "קשת" },
+  { id: "honey", img: "/stamps/honey.jpg", label: "דבש" },
 ];

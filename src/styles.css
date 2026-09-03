@@ -1128,3 +1128,274 @@ h1, h2, h3, .display {
   text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
   padding: 0 2px;
 }
+
+/* ===== גרסה 3: פוסטר אקרוסטיכון + תחנות מחודשות ===== */
+
+.center { text-align: center; }
+.center-img { display: block; margin: 0 auto 10px; }
+.panel-hint { font-size: 0.85rem; color: var(--ink-soft); margin: -4px 0 8px; }
+.panel-hint.center { text-align: center; margin-top: 12px; }
+.warn { margin-top: 10px; color: #b0705e; }
+.reflection-line { background: rgba(191, 216, 194, 0.28); border-radius: 14px; padding: 10px 14px; }
+
+.intent-list { display: grid; gap: 8px; max-width: 460px; margin: 0 auto; }
+.intent-chip {
+  border: 2px solid var(--sage-soft);
+  background: #fff;
+  border-radius: 16px;
+  padding: 11px 16px;
+  font-family: inherit;
+  font-size: 0.98rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: right;
+}
+.intent-chip:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.intent-chip.selected {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #fffdf6, #fdf3d8);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.13);
+}
+
+.deepen-box { margin: 6px 0 4px; }
+.custom-toggle.big { font-size: 1rem; color: var(--bordeaux); }
+.deepen-inner {
+  border: 1.5px dashed var(--mint);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: rgba(191, 216, 194, 0.15);
+}
+.deepen-title { font-family: "Varela Round"; color: var(--bordeaux); margin: 0 0 6px; }
+.deepen-text { color: var(--ink); font-size: 0.94rem; line-height: 1.7; margin: 0 0 10px; }
+.privacy-note { font-size: 0.82rem; color: var(--sage); margin: 4px 0 0; }
+
+.share-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 14px 0 4px;
+  font-size: 0.92rem;
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1.6;
+}
+.share-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--bordeaux); }
+
+.golden-chip.selected {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #fffbe8, #f9edc4);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+}
+
+.signature-input {
+  font-family: "Amatic SC", "Varela Round", cursive;
+  font-size: 1.7rem;
+  font-weight: 700;
+  max-width: 300px;
+}
+
+.weaving-img { width: 130px; border-radius: 20px; animation: float 2.4s ease-in-out infinite; }
+.weaving-text { font-family: "Varela Round"; color: var(--bordeaux); font-size: 1.1rem; margin-top: 14px; }
+
+/* --- הפוסטר --- */
+.poster {
+  width: 100%;
+  max-width: 430px;
+  aspect-ratio: 3 / 4.2;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  color: var(--card-ink);
+  border-radius: 22px;
+  padding: 26px 22px 16px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 24px 60px rgba(60, 40, 50, 0.24);
+}
+.poster::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 2px dashed var(--card-gold);
+  border-radius: 15px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.poster-float {
+  position: absolute;
+  font-size: 1.05rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.poster-head { text-align: center; position: relative; }
+.poster-year { font-size: 0.78rem; letter-spacing: 0.06em; opacity: 0.8; margin: 0 0 2px; }
+.poster-title {
+  font-family: "Amatic SC", "Varela Round", cursive;
+  font-weight: 700;
+  font-size: 3.1rem;
+  color: var(--card-title);
+  margin: 0;
+  line-height: 1.05;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.poster-to {
+  font-family: "Varela Round";
+  font-size: 1.15rem;
+  color: var(--card-gold);
+  margin: 2px 0 0;
+}
+
+.poster-acrostic {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 10px auto 6px;
+  width: fit-content;
+  max-width: 100%;
+  position: relative;
+  flex: 1;
+  justify-content: center;
+}
+
+.acrostic-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 26px;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-chip-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 5px 14px 5px 10px;
+  min-width: 240px;
+}
+
+.acrostic-letter {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: "Varela Round";
+  font-size: 1.35rem;
+  color: #fff;
+  background: radial-gradient(circle at 30% 25%, #e9cd70, var(--card-gold) 62%, #97781c);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.5), 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.acrostic-word {
+  font-family: "Varela Round";
+  font-size: 1.25rem;
+  color: var(--card-title);
+  white-space: nowrap;
+}
+
+.acrostic-icon { font-size: 1.05rem; text-align: center; }
+
+.golden-row {
+  border-color: var(--card-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.28), 0 4px 14px rgba(212, 175, 55, 0.25);
+}
+.golden-row .acrostic-word { text-shadow: 0 0 14px rgba(212, 175, 55, 0.5); }
+.acrostic-spark { font-size: 0.9rem; }
+
+.poster-blessing {
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  margin: 4px 0 0;
+  position: relative;
+}
+.poster-blessing p { margin: 0 0 2px; }
+.poster-golden {
+  color: var(--card-gold);
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+
+.poster .pc-personal-line { text-align: center; font-size: 0.8rem; opacity: 0.85; margin: 6px 0 0; position: relative; }
+
+.poster .pc-sign-row { justify-content: center; margin-top: 8px; }
+
+.poster-footer {
+  text-align: center;
+  font-family: "Varela Round";
+  color: var(--card-gold);
+  font-size: 0.82rem;
+  margin-top: auto;
+  padding-top: 8px;
+  position: relative;
+}
+.poster-footer .pc-credit { margin-top: 3px; font-size: 0.66rem; opacity: 0.7; }
+.poster-footer .pc-logo { width: 22px; height: 22px; }
+
+/* אקרוסטיכון ארוך — שמות של 6+ אותיות מצטופפים בעדינות */
+@media (max-width: 480px) {
+  .poster { max-width: 100%; }
+  .acrostic-word { font-size: 1.1rem; }
+}
+
+/* הדפסה: רק הפוסטר, במרכז העמוד */
+@media print {
+  .journey-card > *:not(.postcard-wrap) { display: none !important; }
+  .journey-card { padding: 0 !important; background: none !important; }
+  .poster { box-shadow: none; max-width: 130mm; margin: 0 auto; filter: none !important; }
+  .app-shell { padding: 0; }
+}
+
+/* ===== האיורים החדשים — באנרים רכים ===== */
+.hero-banner, .step-banner, .weaving-banner {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 14px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lift);
+}
+.hero-banner { animation: float 5s ease-in-out infinite; }
+.weaving-banner { max-width: 400px; animation: pulseSoft 2.2s ease-in-out infinite; }
+@keyframes pulseSoft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
+/* ===== בולים אמיתיים ===== */
+.pc-stamp-img {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  transform: rotate(-7deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+.stamp-chip {
+  border: 2px solid var(--sage-soft);
+  background: #fff;
+  border-radius: 16px;
+  padding: 8px 10px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  transition: all 0.2s;
+}
+.stamp-chip img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+.stamp-chip:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.stamp-chip.selected {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #fffdf6, #fdf3d8);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+  color: var(--bordeaux);
+}

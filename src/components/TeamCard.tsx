@@ -6,18 +6,18 @@ interface Props {
   showName: boolean;
   name: string;
   theme: CardTheme;
-  stampEmoji: string;
+  stampSrc: string;
 }
 
 export const TeamCard = forwardRef<HTMLDivElement, Props>(function TeamCard(
-  { teamWish, showName, name, theme, stampEmoji },
+  { teamWish, showName, name, theme, stampSrc },
   ref
 ) {
   const style: React.CSSProperties = { ...(theme.vars as React.CSSProperties) };
 
   return (
     <div ref={ref} className={`postcard team-card tex-${theme.texture}`} style={style} dir="rtl">
-      <div className="pc-stamp">{stampEmoji}</div>
+      <img className="pc-stamp-img" src={stampSrc} alt="" />
       <div className="pc-postmark" aria-hidden>
         <span>שנה טובה</span>
       </div>

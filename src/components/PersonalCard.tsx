@@ -1,22 +1,32 @@
 import { forwardRef } from "react";
-import type { CardTheme } from "../data/themes";
+import type { CardTheme, Decoration } from "../data/themes";
 import type { SeededDesign } from "../lib/seed";
 
 interface Props {
   name: string;
-  letterText: string;
-  words: string[];
+  blessing: string; // ברכה קצרה — 2-4 שורות
+  rows: { letter: string; icon: string; word: string }[]; // האקרוסטיכון
   goldenWord: string | null;
-  teamWish: string | null; // מוצג רק אם המשתתף בחר במודע
   personalSentence: string | null; // מוצג רק אם המשתתף בחר במודע
   theme: CardTheme;
   seeded: SeededDesign;
-  stampEmoji: string;
+  decorations: Decoration[];
+  density: "minimal" | "normal" | "rich";
+  stampSrc: string;
   signature: string;
 }
 
+const DECO_EMOJI: Record<Decoration, string> = {
+  hearts: "💗",
+  stars: "⭐",
+  flowers: "🌸",
+  sprouts: "🌱",
+  butterflies: "🦋",
+  rainbow: "🌈",
+};
+
 export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalCard(
-  { name, letterText, words, goldenWord, teamWish, personalSentence, theme, seeded, stampEmoji, signature },
+  { name, blessing, rows, goldenWord, personalSentence, theme, seeded, decorations, density, stampSrc, signature },
   ref
 ) {
   const style: React.CSSProperties = {
@@ -24,48 +34,86 @@ export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalC
     filter: `hue-rotate(${seeded.hueShift}deg)`,
   };
 
-  const paragraphs = letterText.split(/\n+/).filter((p) => p.trim());
+  // קישוטים מרחפים במיקומים שנבראו מאותיות השם
+  const decoCount = density === "minimal" ? 0 : density === "rich" ? 8 : 4;
+  const decoList = decorations.length ? decorations : (["stars"] as Decoration[]);
+  const floats = seeded.blobs
+    .concat(seeded.blobs)
+    .slice(0, decoCount)
+    .map((b, i) => ({
+      top: b.top,
+      left: b.left,
+      emoji: DECO_EMOJI[decoList[i % decoList.length]],
+      angle: seeded.decoAngles[i % seeded.decoAngles.length],
+    }));
 
-  // מילת הזהב מקבלת נגיעת זהב גם בתוך גוף המכתב
-  function renderParagraph(p: string) {
-    if (!goldenWord || !p.includes(goldenWord)) return p;
-    const parts = p.split(goldenWord);
+  const blessingLines = blessing.split(/\n+/).filter((l) => l.trim());
+
+  function highlight(line: string) {
+    if (!goldenWord || !line.includes(goldenWord)) return line;
+    const parts = line.split(goldenWord);
     return parts.flatMap((part, i) =>
       i < parts.length - 1
-        ? [part, <span key={i} className="pc-golden-inline">{goldenWord}</span>]
+        ? [part, <span key={i} className="poster-golden">{goldenWord}</span>]
         : [part]
     );
   }
 
   return (
-    <div ref={ref} className={`postcard tex-${theme.texture}`} style={style} dir="rtl">
+    <div ref={ref} className={`poster tex-${theme.texture}`} style={style} dir="rtl">
       {/* כתמי אקוורל שנבראו מאותיות השם */}
       {seeded.blobs.map((b, i) => (
         <span
-          key={i}
+          key={`b${i}`}
           className="pc-blob"
           style={{
-            top: b.top,
-            left: b.left,
-            width: b.size,
-            height: b.size,
-            opacity: b.opacity,
-            filter: `hue-rotate(${b.hue}deg) blur(18px)`,
+            top: b.top, left: b.left, width: b.size, height: b.size,
+            opacity: b.opacity, filter: `hue-rotate(${b.hue}deg) blur(18px)`,
           }}
         />
       ))}
+      {floats.map((f, i) => (
+        <span
+          key={`f${i}`}
+          className="poster-float"
+          style={{ top: f.top, left: f.left, transform: `rotate(${f.angle}deg)` }}
+        >
+          {f.emoji}
+        </span>
+      ))}
 
-      <div className="pc-stamp" title="הבול שלי">{stampEmoji}</div>
-      <div className="pc-postmark" aria-hidden>
-        <span>שנה טובה</span>
+      <img className="pc-stamp-img" src={stampSrc} alt="" />
+      <div className="pc-postmark" aria-hidden><span>שנה טובה</span></div>
+
+      <div className="poster-head">
+        <p className="poster-year">✨ אגרת ברכה לשנה החדשה ✨</p>
+        <h2 className="poster-title">שָׁנָה טוֹבָה</h2>
+        <p className="poster-to">לְ{name}</p>
+        <div className="pc-divider" />
       </div>
 
-      <p className="pc-title">✉️ אגרת לשנה החדשה</p>
-      <div className="pc-divider" />
+      {/* האקרוסטיכון — אותיות השם במרכז הבמה */}
+      <div className="poster-acrostic">
+        {rows.map((r, i) => (
+          <div
+            className={`acrostic-row ${goldenWord === r.word ? "golden-row" : ""}`}
+            key={i}
+            style={{ transform: `rotate(${seeded.decoAngles[i % seeded.decoAngles.length] / 8}deg)` }}
+          >
+            <span className="acrostic-letter">{r.letter}</span>
+            <span className="acrostic-word">
+              {r.word}
+              {goldenWord === r.word && <span className="acrostic-spark"> ✨</span>}
+            </span>
+            <span className="acrostic-icon">{r.icon}</span>
+          </div>
+        ))}
+      </div>
 
-      <div className="pc-letter-body" style={{ transform: `rotate(${seeded.linesTilt}deg)` }}>
-        {paragraphs.map((p, i) => (
-          <p key={i}>{renderParagraph(p)}</p>
+      {/* הברכה הקצרה */}
+      <div className="poster-blessing" style={{ transform: `rotate(${seeded.linesTilt}deg)` }}>
+        {blessingLines.map((l, i) => (
+          <p key={i}>{highlight(l)}</p>
         ))}
       </div>
 
@@ -73,34 +121,17 @@ export const PersonalCard = forwardRef<HTMLDivElement, Props>(function PersonalC
         <p className="pc-personal-line">🔖 {personalSentence}</p>
       )}
 
-      <div className="pc-words-row">
-        {words.map((w, i) => (
-          <span
-            key={i}
-            className={`pc-word-tag ${goldenWord === w ? "golden" : ""}`}
-            style={{ transform: `rotate(${seeded.decoAngles[i % seeded.decoAngles.length] / 3}deg)` }}
-          >
-            {goldenWord === w ? "✨ " : ""}{w}
-          </span>
-        ))}
-      </div>
-
-      {teamWish && (
-        <div className="pc-team">
-          <h4>💌 והברכה שלי לצוות שלנו</h4>
-          <p>{teamWish}</p>
-        </div>
-      )}
-
       <div className="pc-sign-row">
-        <span className="pc-sign-label">שלי, באהבה —</span>
+        <span className="pc-sign-label">באהבה,</span>
         <span className="pc-signature">{signature || name}</span>
       </div>
 
-      <p className="pc-footer">✒️ כתיבה וחתימה טובה · שנה טובה ומתוקה 🍯</p>
-      <div className="pc-credit">
-        <img src="/logo.png" alt="חני בלוי" className="pc-logo" />
-        <span>מילים שבוראות שנה · חני בלוי</span>
+      <div className="poster-footer">
+        <span>✒️ כתיבה וחתימה טובה · שנה טובה ומתוקה 🍯</span>
+        <div className="pc-credit">
+          <img src="/logo.png" alt="חני בלוי" className="pc-logo" />
+          <span>מילים שבוראות שנה · חני בלוי</span>
+        </div>
       </div>
     </div>
   );
